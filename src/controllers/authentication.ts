@@ -13,7 +13,7 @@ export const login = async (req: express.Request, res: express.Response) => {
         statusMessage: "Pass All Required Value",
       });
 
-    const user = await getUserByEmail(email).select(
+    const user = await getUserByEmail(email?.toLowerCase()).select(
       `+authentication.salt +authentication.password`
     );
 
@@ -66,7 +66,7 @@ export const register = async (req: express.Request, res: express.Response) => {
         statusMessage: "Pass All Required Value",
       });
 
-    const exitstingUser = await getUserByEmail(email);
+    const exitstingUser = await getUserByEmail(email?.toLowerCase());
 
     if (exitstingUser)
       return handleResponse({
@@ -77,7 +77,7 @@ export const register = async (req: express.Request, res: express.Response) => {
 
     const salt = random();
     const user = await createUser({
-      email,
+      email: email?.toLowerCase(),
       password,
       authentication: {
         salt,

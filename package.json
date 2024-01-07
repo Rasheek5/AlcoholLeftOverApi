@@ -10,6 +10,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "target": "esnext",
+  "module": "esnext",
   "devDependencies": {
     "@types/compression": "^1.7.3",
     "@types/cookie-parser": "^1.4.4",

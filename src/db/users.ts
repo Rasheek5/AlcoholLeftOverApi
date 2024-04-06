@@ -11,6 +11,7 @@ export const UserSchema = new mongoose.Schema(
     userType: { type: String, require: true },
     firstName: { type: String, require: true },
     lastName: { type: String, require: true },
+    fcmToken: { type: String, require: true },
   },
   {
     timestamps: true,
@@ -40,3 +41,8 @@ export const deleteUserById = (id: string) =>
 export const updatedUserById = (id: string, values: Record<string, any>) => {
   UserModel.findByIdAndUpdate(id, values);
 };
+
+export const updatedUserDetailsById = (
+  id: string,
+  values: Record<string, any>
+) => UserModel.findByIdAndUpdate(id, values);

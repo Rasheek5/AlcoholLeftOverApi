@@ -11,6 +11,12 @@ const leftOverSchema = new mongoose.Schema(
     brandName: { type: String, require: true },
     quantity: { type: String, require: true },
     expiryDate: { type: Date, require: true },
+    scheduleIds: {
+      oneDayBefore: { type: String },
+      oneWeekBefore: { type: String },
+      threeDaysBefore: { type: String },
+      twoWeeksBefore: { type: String },
+    },
   },
   { timestamps: true }
 );
@@ -53,6 +59,9 @@ export const getLeftOverByUploadedBy = (
     customerName: { $regex: regex },
   }).sort({ createdAt: -1 });
 };
+
+export const getLeftOverById = (id: string) =>
+  LeftOverModal.findOne({ _id: id });
 
 export const deleteLeftOverById = (id: string) =>
   LeftOverModal.findOneAndDelete({ _id: id });

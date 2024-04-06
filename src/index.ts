@@ -5,8 +5,10 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import compression from "compression";
 import cors from "cors";
-import mongoose from "mongoose";
+import * as admin from "firebase-admin";
 import router from "./router";
+import { configData } from "./config";
+import { dbConnect } from "./db";
 
 const app = express();
 
@@ -24,19 +26,14 @@ app.use(bodyParser.json());
 
 const server = http.createServer(app);
 
+dbConnect();
+
 server.listen(8080, () => {
   console.log("Server running ");
 });
 
-const MONGO_URL = process.env.MONGO_URL;
-
-mongoose.Promise = Promise;
-mongoose.connect(MONGO_URL);
-mongoose.connection.on("connection", () => {
-  console.log("Connected");
-});
-mongoose.connection.on("error", (error: Error) => {
-  console.log("err", error);
+admin.initializeApp({
+  credential: admin.credential.cert(configData.fireBaseServiceAccount),
 });
 
 app.use("/", router());

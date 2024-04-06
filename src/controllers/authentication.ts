@@ -1,12 +1,17 @@
 import express from "express";
-import { createUser, getUserByEmail } from "../db";
+import {
+  createUser,
+  getUserByEmail,
+  getUserById,
+  updatedUserDetailsById,
+} from "../db";
 import { authentication, handleResponse, random } from "../helpers";
 
 export const login = async (req: express.Request, res: express.Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, fcmToken } = req.body;
 
-    if (!email || !password)
+    if (!email || !password || !fcmToken)
       return handleResponse({
         hasError: true,
         resRef: res,
@@ -39,6 +44,7 @@ export const login = async (req: express.Request, res: express.Response) => {
       salt,
       user._id.toString()
     );
+    user.fcmToken = fcmToken;
 
     await user.save();
 
@@ -57,9 +63,17 @@ export const login = async (req: express.Request, res: express.Response) => {
 
 export const register = async (req: express.Request, res: express.Response) => {
   try {
-    const { email, password, firstName, secondName, userType } = req.body;
+    const { email, password, firstName, secondName, userType, fcmToken } =
+      req.body;
 
-    if (!email || !password || !firstName || !secondName || !userType)
+    if (
+      !email ||
+      !password ||
+      !firstName ||
+      !secondName ||
+      !userType ||
+      !fcmToken
+    )
       return handleResponse({
         hasError: true,
         resRef: res,
@@ -86,7 +100,56 @@ export const register = async (req: express.Request, res: express.Response) => {
       firstName,
       lastName: secondName,
       userType,
+      fcmToken,
     });
+
+    return handleResponse({
+      resRef: res,
+      result: user,
+      hasError: false,
+    });
+  } catch (err) {
+    return handleResponse({
+      hasError: true,
+      resRef: res,
+    });
+  }
+};
+
+export const logOut = async (req: express.Request, res: express.Response) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId)
+      return handleResponse({
+        hasError: true,
+        resRef: res,
+        errorMessage: "User Id Required",
+      });
+
+    const user = await getUserById(userId?.toString());
+
+    if (!user) {
+      return handleResponse({
+        hasError: true,
+        resRef: res,
+        statusMessage: "Pass Valid  User Id",
+      });
+    }
+
+    user.fcmToken = null;
+
+    const upadtedData = await updatedUserDetailsById(userId?.toString(), {
+      ...user,
+    });
+
+    if (!upadtedData) {
+      return handleResponse({
+        hasError: true,
+        resRef: res,
+        statusMessage: "Something Went Wrong",
+      });
+    }
 
     return handleResponse({
       resRef: res,

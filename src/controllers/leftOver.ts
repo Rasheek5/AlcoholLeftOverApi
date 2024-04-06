@@ -1,4 +1,9 @@
-import { checkUserTypeIsValid, handleResponse } from "../helpers";
+import {
+  cancelAllScheduleJobForLeftOver,
+  checkUserTypeIsValid,
+  handleResponse,
+  schedulerForLeftover,
+} from "../helpers";
 import {
   getUserById,
   createLeftOver,
@@ -6,6 +11,7 @@ import {
   getLeftOverByCustomerId,
   updatedLeftOverById,
   deleteLeftOverById,
+  getLeftOverById,
 } from "../db";
 import express from "express";
 import { USER_TYPE_INVALID_ERROR } from "../constants";
@@ -25,6 +31,7 @@ export const uploadLeftOver = async (
       expiryDate,
       forEdit,
       _id,
+      scheduleIds,
     } = req.body;
 
     if (
@@ -71,8 +78,19 @@ export const uploadLeftOver = async (
       expiryDate,
     };
 
+    const newscheduleIds = schedulerForLeftover({
+      expiryDate,
+      customerId,
+      brandName,
+      imageUrl: image,
+      forEdit,
+      scheduleIds,
+    });
+
+    const dataToPass = { ...data, scheduleIds: { ...newscheduleIds } };
+
     if (!forEdit) {
-      const leftOver = await createLeftOver(data);
+      const leftOver = await createLeftOver(dataToPass);
       return sendRes(leftOver);
     }
 
@@ -84,7 +102,7 @@ export const uploadLeftOver = async (
       });
     }
 
-    const updatedData = await updatedLeftOverById(_id, data);
+    const updatedData = await updatedLeftOverById(_id, dataToPass);
 
     if (!updatedData) {
       return handleResponse({
@@ -95,6 +113,7 @@ export const uploadLeftOver = async (
 
     return sendRes(updatedData);
   } catch (err) {
+    console.log(err);
     return handleResponse({
       resRef: res,
       hasError: true,
@@ -169,6 +188,12 @@ export const deleteLeftOver = async (
       });
     }
 
+    const existingfData = await getLeftOverById(id?.toString());
+
+    if (existingfData.scheduleIds) {
+      cancelAllScheduleJobForLeftOver(existingfData.scheduleIds);
+    }
+
     const data = await deleteLeftOverById(id?.toString());
 
     if (!data) {
@@ -184,6 +209,37 @@ export const deleteLeftOver = async (
       statusMessage: "Left Over Deleted",
     });
   } catch (err) {
+    return handleResponse({
+      resRef: res,
+      hasError: true,
+    });
+  }
+};
+
+export const leftOverScheduler = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  const { userId } = req.body;
+
+  try {
+    if (!userId)
+      return handleResponse({
+        resRef: res,
+        hasError: true,
+        errorMessage: "User Id and User Type Required",
+      });
+
+    const user = await getUserById(userId);
+
+    if (!user) {
+      return handleResponse({
+        resRef: res,
+        hasError: true,
+        statusMessage: "Invalid user Id",
+      });
+    }
+  } catch (error) {
     return handleResponse({
       resRef: res,
       hasError: true,

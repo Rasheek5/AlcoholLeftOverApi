@@ -3,6 +3,7 @@ import {
   deleteLeftOver,
   getLefoverByUserId,
   uploadLeftOver,
+  leftOverScheduler,
 } from "../controllers";
 
 export default (router: express.Router) => {
@@ -10,4 +11,5 @@ export default (router: express.Router) => {
   router.patch("/leftOver/update", uploadLeftOver);
   router.get("/leftOver/getLefoverByUserId", getLefoverByUserId);
   router.delete("/leftOver/delete", deleteLeftOver);
+  router.post("/leftOver/scheduler", leftOverScheduler);
 };

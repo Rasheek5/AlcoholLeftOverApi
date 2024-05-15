@@ -5,10 +5,9 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import compression from "compression";
 import cors from "cors";
-import * as admin from "firebase-admin";
 import router from "./router";
-import { configData } from "./config";
 import { dbConnect } from "./db";
+import { firebaseInitialize } from "./helpers";
 
 const app = express();
 
@@ -28,12 +27,10 @@ const server = http.createServer(app);
 
 dbConnect();
 
-server.listen(8080, () => {
+server.listen(process.env.PORT, () => {
   console.log("Server running ");
 });
 
-admin.initializeApp({
-  credential: admin.credential.cert(configData.fireBaseServiceAccount),
-});
+firebaseInitialize();
 
 app.use("/", router());
